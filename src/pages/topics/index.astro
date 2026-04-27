@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const topics = [
+  {
+    title: "Quantum ML",
+    slug: "quantum-ml",
+    desc: "The intersection of quantum computing and machine learning. We explore variational circuits, quantum kernels, and quantum-enhanced optimization techniques for intelligent systems.",
+    subjects: ["Variational Quantum Circuits", "Quantum Kernel Methods", "Quantum Neural Networks", "Hybrid Architectures"],
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m16 4-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`
+  },
+  {
+    title: "Quantum Algorithms",
+    slug: "quantum-algorithms",
+    desc: "Rigorous derivations of quantum algorithms from first principles. From foundational Shor's and Grover's to modern NISQ-era algorithms like VQE and QAOA.",
+    subjects: ["Shor's Algorithm", "Grover Search", "VQE & QAOA", "Quantum Phase Estimation"],
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M7 10h10"/><path d="M5 20v-4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M3 10V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/><path d="m9 10 3-3 3 3"/></svg>`
+  },
+  {
+    title: "Foundations",
+    slug: "foundations",
+    desc: "Master the mathematical language of quantum mechanics. We break down the linear algebra, density matrices, and unitary transformations required for deep technical work.",
+    subjects: ["Dirac Notation", "Hilbert Spaces", "Density Matrices", "Entanglement Theory"],
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M3 12c0 2.21 4.03 4 9 4s9-1.79 9-4-4.03-4-9-4-9 1.79-9 4Z"/><path d="M12 3c-2.21 0-4 4.03-4 9s1.79 9 4 9 4-4.03 4-9-1.79-9-4-9Z"/></svg>`
+  },
+  {
+    title: "Classical AI",
+    slug: "classical-ai",
+    desc: "Bridge the gap between modern transformer-based classical AI and emergent quantum techniques. Understanding the state-of-the-art is crucial for meaningful comparison.",
+    subjects: ["Transformers & LLMs", "Neural Architecture", "Optimization Theory", "Data Structures"],
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M12 3v3"/><path d="M12 18v3"/><path d="M6 12H3"/><path d="M21 12h-3"/><path d="m18.36 5.64-2.12 2.12"/><path d="m8.12 15.88-2.12 2.12"/><path d="m5.64 5.64 2.12 2.12"/><path d="m15.88 15.88 2.12 2.12"/></svg>`
+  },
+  {
+    title: "Industry & Research",
+    slug: "industry",
+    desc: "Real-world progress and academic milestones. We cut through the hype to provide clear-eyed analysis of roadmap progress and significant research breakthroughs.",
+    subjects: ["Hardware Roadmaps", "Benchmarking", "Quantum Error Correction", "Enterprise Applications"],
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"/><path d="M7 15h0"/><path d="M12 15h0"/><path d="M17 15h0"/><path d="M7 11h0"/><path d="M12 11h0"/><path d="M17 11h0"/><rect width="20" height="14" x="2" y="7" rx="2"/></svg>`
+  }
+];
+---
+
+<BaseLayout title="Explore Topics | Quaniq" description="Specialized coverage across the entire quantum computing and AI stack.">
+  <div class="reading-column py-24">
+    <div class="mb-16">
+      <h1 class="text-5xl font-bold mb-6">Explore Topics</h1>
+      <p class="text-xl text-[#94a3b8] leading-relaxed max-w-2xl">
+        Specialized coverage across the entire quantum computing and AI stack. From foundational physics to practical machine learning implementations.
+      </p>
+    </div>
+
+    <div class="space-y-12">
+      {topics.map((topic) => (
+        <div class="group relative p-10 rounded-2xl bg-[#0f0f1a] border border-[#1e1e2e] hover:border-[#6366f1]/50 transition-all duration-300 shadow-xl overflow-hidden">
+          <div class="relative z-10 flex flex-col md:flex-row gap-10 items-start">
+            <div class="p-4 rounded-xl bg-[#0a0a0f] border border-[#1e1e2e] group-hover:bg-[#6366f1]/10 group-hover:border-[#6366f1]/20 transition-colors flex items-center justify-center w-16 h-16">
+              <div class="w-8 h-8 flex items-center justify-center">
+                <Fragment set:html={topic.icon} />
+              </div>
+            </div>
+            
+            <div class="flex-grow">
+              <h2 class="text-3xl font-bold !mt-0 mb-4 group-hover:text-[#6366f1] transition-colors">{topic.title}</h2>
+              <p class="text-lg text-[#94a3b8] mb-8 leading-relaxed max-w-2xl">{topic.desc}</p>
+              
+              <div class="flex flex-wrap gap-x-8 gap-y-4 mb-8">
+                {topic.subjects.map((s) => (
+                  <div class="flex items-center gap-2 text-sm text-[#475569]">
+                    <div class="h-1.5 w-1.5 rounded-full bg-[#6366f1]"></div>
+                    {s}
+                  </div>
+                ))}
+              </div>
+
+              <a href={`/topics/${topic.slug}`} class="inline-flex items-center gap-2 rounded-md bg-[#6366f1] px-6 py-3 text-sm font-bold text-white no-underline hover:bg-[#4f46e5] w-fit">
+                View Articles
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+          
+          <!-- Abstract Background Element -->
+          <div class="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-[#6366f1]/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

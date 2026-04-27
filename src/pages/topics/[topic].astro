@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const topics = [
+    { slug: 'quantum-ml', name: 'Quantum ML' },
+    { slug: 'quantum-algorithms', name: 'Quantum Algorithms' },
+    { slug: 'foundations', name: 'Foundations' },
+    { slug: 'classical-ai', name: 'Classical AI' },
+    { slug: 'industry-research', name: 'Industry & Research' }
+  ];
+
+  return topics.map(({ slug, name }) => ({
+    params: { topic: slug },
+    props: { name }
+  }));
+}
+
+const { topic } = Astro.params;
+const { name } = Astro.props;
+
+const allPosts = await getCollection('posts');
+const matchingPosts = allPosts.filter((post) => post.data.topic === name);
+matchingPosts.sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+---
+
+<BaseLayout 
+  title={`${name} | Quaniq`} 
+  description={`Articles and research deep-dives on ${name}.`}
+>
+  <div class="py-24 max-w-[1200px] mx-auto px-6 min-h-[70vh]">
+    <div class="mb-16">
+      <span class="text-[10px] font-bold text-[#6366f1] uppercase tracking-widest mb-4 block">Topic Hub</span>
+      <h1 class="text-5xl font-bold mb-6">{name}</h1>
+      <div class="h-1 w-20 bg-[#2dd4bf] rounded"></div>
+    </div>
+
+    {matchingPosts.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {matchingPosts.map(post => <PostCard {...post.data} image={post.data.heroImage} href={`/posts/${post.slug}`} />)}
+      </div>
+    ) : (
+      <div class="py-20 text-center border border-dashed border-[#1e1e2e] rounded-xl bg-[#0a0a0f]">
+        <p class="text-[#94a3b8] text-lg">No articles published in this topic yet. Check back soon.</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

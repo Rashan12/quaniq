@@ -1,0 +1,101 @@
+---
+title: "What Is Quantum AI? The Honest Answer in 2025"
+subtitle: "Separating real progress from hype — with the physics and math to back it up"
+topic: "Foundations"
+date: "2025-01-15"
+readTime: 12
+author:
+  name: "Rashan Dissanayaka"
+  role: "Data Science Professional & Quantum AI Researcher, Founder/CEO Intellit"
+excerpt: "Quantum AI is one of the most hyped and misunderstood fields in technology. We break down exactly what it is, what it is not, and where the genuine mathematical intersection of quantum mechanics and machine learning currently stands."
+heroImage: "/images/posts/001-hero.jpg"
+tags: ["quantum computing", "machine learning", "explainer", "foundations"]
+featured: true
+---
+import BlochSphere from '../../components/interactive/BlochSphere.jsx';
+
+## Introduction
+
+As we enter 2025, "Quantum AI" has transitioned from a fringe academic curiosity to a staple of corporate marketing decks. However, behind the glossy presentations lies a field of profound mathematical depth and technical challenge.
+
+To understand Quantum AI, we must first distinguish between three separate domains of inquiry:
+
+1.  **Quantum-enhanced AI**: The use of quantum hardware to provide computational speedups for specific sub-routines in classical machine learning (e.g., linear systems solvers or optimization).
+2.  **Quantum-native ML**: Developing entirely new learning architectures that operate directly on quantum states, utilizing Hilbert space properties like high-dimensional mapping.
+3.  **AI for Quantum**: A complementary field where classical ML is used to solve the "plumbing" problems of quantum computers, such as error correction and circuit compiling.
+
+## The Quantum Computing Basics You Need
+
+Before discussing AI, we must establish a common mathematical language: the language of linear algebra in complex vector spaces.
+
+### State Vector Representation
+
+A classical bit is discrete: $0$ or $1$. A quantum bit (qubit) exists in a superposition of these states. We represent this using Dirac notation:
+
+<div class="math-block">
+
+$$
+| \psi \rangle = \alpha | 0 \rangle + \beta | 1 \rangle
+$$
+
+</div>
+
+where $\alpha, \beta \in \mathbb{C}$ are complex probability amplitudes. The normalization condition must always be satisfied:
+
+<div class="math-block">
+
+$$
+| \alpha |^2 + | \beta |^2 = 1
+$$
+
+</div>
+
+### The Bloch Sphere
+
+We can visualize this state as a point on a sphere of unit radius. This is known as the **Bloch Sphere**. You can interact with the visualization below to see how rotating the state vector changes the probability coefficients.
+
+<BlochSphere client:load />
+
+### Entanglement and Measurement
+
+One of the most powerful tools in Quantum AI is **entanglement**. Consider a two-qubit Bell state:
+
+<div class="math-block">
+
+$$
+| \Phi^+ \rangle = \frac{1}{\sqrt{2}} (| 00 \rangle + | 11 \rangle)
+$$
+
+</div>
+
+In this state, the qubits are perfectly correlated. Measuring one qubit immediately determines the outcome of the other, regardless of distance. This non-local correlation is what allows quantum algorithms to explore data patterns in ways classical bits cannot.
+
+## Where Quantum Meets ML Today (2025)
+
+The current era is defined as **NISQ** (Noisy Intermediate-Scale Quantum). We lack logical qubits, meaning every operation is fought against decoherence.
+
+### Proven vs. Theoretical
+
+-   **Quantum Kernel Methods**: Havlíček et al. (2019) demonstrated that specific data structures can be mapped into a quantum feature space where they become linearly separable, even if they were non-linearly distributed in classical space.
+-   **Variational Quantum Eigensolvers (VQE)**: Used extensively for chemistry and optimization, these are hybrid algorithms where a classical optimizer "tunes" a quantum circuit.
+
+> [!IMPORTANT]
+> While "Quantum Advantage" has been claimed for specific sampling tasks, a general, sustainable advantage for commercial machine learning has not yet been demonstrated on physical hardware in 2025.
+
+## The Honest Timeline
+
+Based on current roadmaps from leaders like IBM and Google, here is what we realistically expect:
+
+-   **2024–2025 (NISQ Era)**: Demonstrations of small-scale quantum kernels and error-mitigated variational circuits for materials science.
+-   **2026–2028 (Early Fault Tolerance)**: The first logical qubits. We expect the first proof-of-concept quantum speedups for specific quadratic programming problems.
+-   **2030+ (Scaled Quantum)**: Full error correction. This is where we might see "Universal Quantum AI" capable of training large-scale models.
+
+## Conclusion
+
+Quantum AI is not a magic "faster button" for ChatGPT. It is a fundamental rethinking of how we process information, shifting from discrete logic to probabilistic manifold navigation. Despite the hype, the mathematical potential remains unparalleled.
+
+## References
+
+1.  Havlíček, V., et al. (2019). "Supervised learning with quantum-enhanced feature spaces." *Nature*, 567, 209–212. [DOI: 10.1038/s41586-019-0980-2](https://doi.org/10.1038/s41586-019-0980-2)
+2.  Peruzzo, A., et al. (2014). "A variational eigenvalue solver on a photonic quantum processor." *Nature Communications*, 5, 4213. [DOI: 10.1038/ncomms5213](https://doi.org/10.1038/ncomms5213)
+3.  Preskill, J. (2018). "Quantum Computing in the NISQ era and beyond." *Quantum*, 2, 79. [DOI: 10.22331/q-2018-07-30-79](https://doi.org/10.22331/q-2018-07-30-79)

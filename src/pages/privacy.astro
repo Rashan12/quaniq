@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout 
+  title="Privacy Policy | Quaniq" 
+  description="How we collect, use, and protect your data while delivering high-fidelity technical writing."
+>
+  <div class="py-24 max-w-[800px] mx-auto px-6 reading-column min-h-[70vh]">
+    <header class="mb-16">
+      <h1 class="text-4xl md:text-5xl font-bold mb-6">Privacy Policy</h1>
+      <p class="text-lg text-[#94a3b8] mb-4">Last updated: April 2026</p>
+      <div class="h-1 w-20 bg-[#6366f1] rounded"></div>
+    </header>
+
+    <div class="prose max-w-none text-[#94a3b8]">
+      <p class="text-lg mb-10 leading-relaxed text-[#f8fafc]">
+        Quaniq is a static publication focused on quantum computing and AI. We believe in high-fidelity signal and zero noise — this extends to how we handle data. We do not sell data, we do not run ads, and we use privacy-first tools for everything we do.
+      </p>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">1. INFORMATION WE COLLECT</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li><strong>Email address:</strong> Only collected if you explicitly subscribe to the Quaniq Weekly newsletter.</li>
+        <li><strong>Anonymous page view data:</strong> Collected via Umami analytics. No IP addresses are stored, no device fingerprinting is used, and no tracking cookies are set.</li>
+        <li><strong>No accounts:</strong> We do not ask for any passwords or require logins.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">2. HOW WE USE YOUR INFORMATION</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li><strong>Email:</strong> Exclusively to send the Quaniq Weekly newsletter. Nothing else.</li>
+        <li><strong>Analytics:</strong> Exclusively to understand which topics readers find useful (in aggregate only) to guide future technical writing.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">3. NEWSLETTER</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li>Our newsletter delivery is powered by <a href="https://resend.com" class="text-[#6366f1] hover:text-[#2dd4bf] transition-colors">Resend</a>.</li>
+        <li>You can unsubscribe completely at any time via the clearly marked link at the bottom of every email.</li>
+        <li>We do not, and will never, share your email address with third parties.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">4. ANALYTICS</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li>We use Umami, an open-source, privacy-respecting analytics tool.</li>
+        <li>Umami does not use cookies and does not collect personally identifiable information (PII).</li>
+        <li>Data is strictly aggregate: we only see metrics like total page views, referring websites, and general geographical location by country.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">5. THIRD PARTY SERVICES</h2>
+      <p class="mb-4">We maintain minimal dependencies to operate this site:</p>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li><strong>Netlify (Hosting)</strong> — Provides our static hosting infrastructure. See <a href="https://netlify.com/privacy" class="text-[#6366f1] hover:text-[#2dd4bf] transition-colors">netlify.com/privacy</a>.</li>
+        <li><strong>Resend (Email)</strong> — Handles newsletter delivery safely. See <a href="https://resend.com/privacy" class="text-[#6366f1] hover:text-[#2dd4bf] transition-colors">resend.com/privacy</a>.</li>
+        <li><strong>Umami (Analytics)</strong> — Our privacy-first analytics provider.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">6. DATA RETENTION</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li>Newsletter emails are retained securely via Resend until you opt to unsubscribe, at which point delivery halts immediately.</li>
+        <li>Aggregate analytics data is retained for 12 months for year-over-year site evaluation.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">7. YOUR RIGHTS</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li>You inherently have the right to unsubscribe from the newsletter at any time.</li>
+        <li>You may request complete deletion of your email from our system by contacting us.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">8. CHANGES TO THIS POLICY</h2>
+      <ul class="list-disc pl-6 mb-8 space-y-2">
+        <li>We maintain a stable privacy posture but will post any operational updates on this page.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold text-[#f8fafc] mt-12 mb-4">9. CONTACT</h2>
+      <div class="p-6 rounded-xl bg-[#0f0f1a] border border-[#1e1e2e] mt-6">
+        <p class="mb-2">Quaniq is a publication governed by <strong>Intellit</strong>.</p>
+        <p class="mb-0">
+          For any privacy-related inquiries, data deletion requests, or questions, please contact us at: <br/>
+          <a href="mailto:intellit.co@gmail.com" class="text-[#2dd4bf] font-bold mt-2 inline-block hover:text-[#6366f1] transition-colors">intellit.co@gmail.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

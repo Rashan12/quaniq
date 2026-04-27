@@ -1,0 +1,298 @@
+---
+title: "The Variational Quantum Eigensolver: A Complete Mathematical Derivation"
+subtitle: "A deep dive into the VQE algorithm — mapping its execution on NISQ hardware and providing a step-by-step derivation of the cost function gradient"
+topic: "quantum-ml"
+date: 2026-04-22
+readTime: 15
+author: "Rashan Dissanayaka"
+excerpt: "The Variational Quantum Eigensolver is the foundational algorithm of near-term quantum computing. We derive it completely — from the variational principle of quantum mechanics through the parameter-shift gradient rule to the classical optimization loop — and assess where it stands on real hardware today."
+heroImage: "/images/posts/vqe-hero.png"
+tags: ["VQE", "variational quantum eigensolver", "quantum chemistry", "NISQ", "quantum algorithms", "optimization"]
+featured: true
+---
+
+## Introduction
+
+The Variational Quantum Eigensolver (VQE) is the algorithm that launched the field of near-term quantum computing as a serious research discipline. Proposed by Peruzzo et al. in 2014 [1], it was the first algorithm designed specifically to run on **Noisy Intermediate-Scale Quantum (NISQ)** hardware — devices that have too many errors for fault-tolerant computation but are real, programmable, and available today.
+
+The problem VQE solves: find the **ground state energy** of a quantum system described by a Hamiltonian $H$. This is the central computational problem in quantum chemistry. The ground state energy determines molecular geometry, reaction rates, bond strengths, and material properties. Classical computers can solve it exactly only for very small molecules — the computational cost scales exponentially with system size.
+
+VQE offers a path to solving larger instances using quantum hardware. Whether it will achieve practical quantum advantage is still an open question — we will be honest about that at the end. But the algorithm itself is mathematically beautiful and worth understanding completely.
+
+---
+
+## 1. The Variational Principle
+
+VQE is grounded in the **variational principle of quantum mechanics**, which we state and prove here.
+
+### 1.1 Statement
+
+**Theorem (Variational Principle).** Let $H$ be a Hermitian operator with ground state energy $E_0$ (the smallest eigenvalue). For any normalized quantum state $|\psi\rangle$:
+
+$$
+\langle \psi | H | \psi \rangle \geq E_0
+$$
+
+with equality if and only if $|\psi\rangle$ is the ground state $|E_0\rangle$.
+
+### 1.2 Proof
+
+Let $\{|E_k\rangle\}_{k=0}^{N-1}$ be the complete orthonormal eigenbasis of $H$ with eigenvalues $E_0 \leq E_1 \leq \cdots \leq E_{N-1}$. Any normalized state $|\psi\rangle$ can be expanded as:
+
+$$
+|\psi\rangle = \sum_{k=0}^{N-1} c_k |E_k\rangle, \quad \sum_{k=0}^{N-1} |c_k|^2 = 1
+$$
+
+Then:
+
+$$
+\langle \psi | H | \psi \rangle = \left\langle \sum_j c_j^* E_j \right| H \left| \sum_k c_k E_k \right\rangle = \sum_k |c_k|^2 E_k
+$$
+
+Since $E_k \geq E_0$ for all $k$:
+
+$$
+\sum_k |c_k|^2 E_k \geq \sum_k |c_k|^2 E_0 = E_0 \sum_k |c_k|^2 = E_0
+$$
+
+Therefore $\langle \psi | H | \psi \rangle \geq E_0$. Equality holds iff $c_k = 0$ for all $k \neq 0$, i.e., $|\psi\rangle = |E_0\rangle$. $\square$
+
+### 1.3 The Variational Strategy
+
+The variational principle gives us an optimization strategy: introduce a **parameterized family of trial states** $|\psi(\boldsymbol{\theta})\rangle$ and minimize the expectation value:
+
+$$
+E(\boldsymbol{\theta}) = \langle \psi(\boldsymbol{\theta}) | H | \psi(\boldsymbol{\theta}) \rangle \geq E_0
+$$
+
+The minimum over $\boldsymbol{\theta}$ is an upper bound on $E_0$. The tighter the family, the closer we get.
+
+---
+
+## 2. The Molecular Hamiltonian
+
+To apply VQE to chemistry, we need the electronic structure Hamiltonian. Starting from first principles, the non-relativistic molecular Hamiltonian (in atomic units, $\hbar = m_e = e = 1$) is:
+
+$$
+H = -\sum_i \frac{\nabla_i^2}{2} - \sum_{i,A} \frac{Z_A}{r_{iA}} + \sum_{i < j} \frac{1}{r_{ij}} + V_{nn}
+$$
+
+where the four terms are: electron kinetic energy, electron-nucleus attraction, electron-electron repulsion, and constant nuclear repulsion $V_{nn}$.
+
+### 2.1 Second Quantization
+
+For quantum computing, we express $H$ in **second quantization** using fermionic creation ($a_p^\dagger$) and annihilation ($a_p$) operators:
+
+$$
+H = \sum_{pq} h_{pq} a_p^\dagger a_q + \frac{1}{2}\sum_{pqrs} h_{pqrs} a_p^\dagger a_q^\dagger a_r a_s
+$$
+
+where $h_{pq}$ and $h_{pqrs}$ are one- and two-electron integrals computed classically from the molecular orbital basis. These integrals are computable efficiently — the hard part is finding the ground state of the resulting operator.
+
+### 2.2 Jordan-Wigner Transformation
+
+To run on a qubit-based quantum computer, fermionic operators must be mapped to Pauli operators via the **Jordan-Wigner transformation**:
+
+$$
+a_j^\dagger = \left(\bigotimes_{k=0}^{j-1} Z_k\right) \otimes \frac{X_j - iY_j}{2}
+$$
+
+$$
+a_j = \left(\bigotimes_{k=0}^{j-1} Z_k\right) \otimes \frac{X_j + iY_j}{2}
+$$
+
+After applying this transformation, $H$ becomes a sum of Pauli strings:
+
+$$
+H = \sum_k c_k P_k, \quad P_k \in \{I, X, Y, Z\}^{\otimes n}
+$$
+
+where $c_k \in \mathbb{R}$ are coefficients and $P_k$ are tensor products of single-qubit Pauli operators. For example, for the hydrogen molecule $\text{H}_2$ in a minimal basis, the qubit Hamiltonian has the form:
+
+$$
+H_{\text{H}_2} = g_0 I + g_1 Z_0 + g_2 Z_1 + g_3 Z_0 Z_1 + g_4 X_0 X_1 + g_5 Y_0 Y_1
+$$
+
+where the coefficients $g_i$ depend on the bond length $R$ and are computed classically.
+
+---
+
+## 3. The Ansatz: Parameterized Trial State
+
+The quantum circuit that prepares $|\psi(\boldsymbol{\theta})\rangle$ is called the **ansatz**. Its design is critical — it must be both expressive enough to capture the ground state and shallow enough to run on noisy hardware.
+
+### 3.1 The Unitary Coupled Cluster Ansatz
+
+The chemically motivated ansatz is **Unitary Coupled Cluster Singles and Doubles (UCCSD)**:
+
+$$
+|\psi_{\text{UCCSD}}(\boldsymbol{\theta})\rangle = e^{T(\boldsymbol{\theta}) - T^\dagger(\boldsymbol{\theta})} |\phi_0\rangle
+$$
+
+where $|\phi_0\rangle$ is the Hartree-Fock reference state (computable classically) and:
+
+$$
+T(\boldsymbol{\theta}) = \sum_{ia} \theta_i^a a_a^\dagger a_i + \sum_{ijab} \theta_{ij}^{ab} a_a^\dagger a_b^\dagger a_i a_j
+$$
+
+The first sum runs over single excitations (moving one electron from occupied orbital $i$ to virtual orbital $a$) and the second over double excitations.
+
+After Jordan-Wigner transformation, the unitary $e^{T - T^\dagger}$ decomposes into a product of Pauli rotation gates implementable on quantum hardware.
+
+### 3.2 Hardware-Efficient Ansatz
+
+For current devices, hardware-efficient ansätze are often used instead — alternating layers of single-qubit rotations and entangling gates chosen to match device connectivity:
+
+$$
+|\psi(\boldsymbol{\theta})\rangle = \prod_{l=1}^{L} \left(\prod_{\langle i,j \rangle} \text{CNOT}_{ij}\right) \left(\prod_i R_Y(\theta_{l,i}) R_Z(\phi_{l,i})\right) |0\rangle^{\otimes n}
+$$
+
+These are cheaper to run but less physically motivated, potentially requiring more parameters to reach chemical accuracy.
+
+---
+
+## 4. Cost Function and Measurement
+
+### 4.1 Expectation Value as Cost
+
+The VQE cost function is:
+
+$$
+E(\boldsymbol{\theta}) = \langle \psi(\boldsymbol{\theta}) | H | \psi(\boldsymbol{\theta}) \rangle = \sum_k c_k \langle \psi(\boldsymbol{\theta}) | P_k | \psi(\boldsymbol{\theta}) \rangle
+$$
+
+Each term $\langle P_k \rangle$ is a Pauli expectation value. This is the key insight: **we never measure $H$ directly**. We measure each Pauli string $P_k$ separately and combine classically.
+
+### 4.2 Measuring Pauli Strings
+
+For a Pauli string $P_k = \bigotimes_i \sigma_i^{(k)}$ where $\sigma_i^{(k)} \in \{I, X, Y, Z\}$:
+
+- $I$ terms: contribute 1, no measurement needed
+- $Z$ terms: measure in the computational basis
+- $X$ terms: apply Hadamard $H$ before measuring
+- $Y$ terms: apply $S^\dagger H$ before measuring
+
+The expectation value is estimated from $T$ repeated circuit executions (shots):
+
+$$
+\hat{E}(\boldsymbol{\theta}) = \sum_k c_k \hat{\langle P_k \rangle}, \quad \text{where } \hat{\langle P_k \rangle} = \frac{1}{T}\sum_{t=1}^T m_t^{(k)} \in \{-1, +1\}
+$$
+
+Statistical error: $\text{Var}[\hat{E}] = O\left(\frac{\sum_k |c_k|^2}{T}\right)$, so total shots needed scales with the number and magnitude of Hamiltonian terms.
+
+---
+
+## 5. Gradient Computation: The Parameter-Shift Rule
+
+To minimize $E(\boldsymbol{\theta})$ with gradient descent, we need $\partial E / \partial \theta_j$.
+
+### 5.1 Derivation
+
+Each parameterized gate has the form $U_j(\theta_j) = e^{-i\theta_j G_j/2}$ where $G_j$ is a Pauli operator with eigenvalues $\pm 1$. The cost function is therefore:
+
+$$
+E(\theta_j) = A\cos(\theta_j) + B\sin(\theta_j) + C
+$$
+
+for constants $A$, $B$, $C$ (holding all other parameters fixed). This is exactly sinusoidal in $\theta_j$, so the derivative is:
+
+$$
+\frac{\partial E}{\partial \theta_j} = -A\sin(\theta_j) + B\cos(\theta_j)
+$$
+
+Evaluating $E$ at $\theta_j \pm \pi/2$:
+
+$$
+E\!\left(\theta_j + \frac{\pi}{2}\right) = -A\sin(\theta_j) + B\cos(\theta_j) + C
+$$
+
+$$
+E\!\left(\theta_j - \frac{\pi}{2}\right) = A\sin(\theta_j) - B\cos(\theta_j) + C
+$$
+
+Subtracting:
+
+$$
+\boxed{\frac{\partial E}{\partial \theta_j} = \frac{E\!\left(\theta_j + \frac{\pi}{2}\right) - E\!\left(\theta_j - \frac{\pi}{2}\right)}{2}}
+$$
+
+This is the **parameter-shift rule** [Mitarai et al., 2018; Schuld et al., 2019]. It gives the **exact** gradient using only two additional circuit evaluations. No finite differences, no approximation.
+
+### 5.2 Full Gradient Cost
+
+For $p$ parameters and $M$ Pauli terms in $H$, each with $T$ shots:
+- **Cost per gradient:** $2p \times M \times T$ circuit evaluations
+- For $\text{H}_2$: $p \approx 2$, $M = 6$, $T = 1000$ → ~24,000 evaluations per gradient step
+
+---
+
+## 6. The Classical Optimization Loop
+
+VQE is a **hybrid quantum-classical** algorithm. The quantum processor evaluates the cost function; a classical optimizer updates the parameters.
+
+### 6.1 Algorithm
+
+```
+Initialize: θ⁽⁰⁾ randomly or from chemical heuristics
+Repeat until convergence:
+  1. Prepare |ψ(θ⁽ᵗ⁾)⟩ on quantum hardware
+  2. Measure each Pauli term Pₖ to estimate E(θ⁽ᵗ⁾)
+  3. Compute gradient ∇E(θ⁽ᵗ⁾) via parameter-shift
+  4. Update: θ⁽ᵗ⁺¹⁾ = θ⁽ᵗ⁾ − η∇E(θ⁽ᵗ⁾)
+Until |E(θ⁽ᵗ⁺¹⁾) − E(θ⁽ᵗ⁾)| < ε
+```
+
+### 6.2 Chemical Accuracy
+
+The target for quantum chemistry is **chemical accuracy**: $|E_{\text{computed}} - E_{\text{exact}}| \leq 1.6 \times 10^{-3}$ Hartree ($\approx 1$ kcal/mol). This is the threshold below which predicted reaction energies are trustworthy.
+
+VQE on $\text{H}_2$ achieves chemical accuracy on current hardware with UCCSD ansatz [Peruzzo et al., 2014]. Larger molecules remain out of reach due to noise.
+
+---
+
+## 7. Results on Real Hardware
+
+### 7.1 What Has Been Demonstrated
+
+| Molecule | Qubits | Hardware | Accuracy | Reference |
+|---|---|---|---|---|
+| $\text{H}_2$ | 2 | Photonic chip | Chemical accuracy | Peruzzo et al. (2014) |
+| $\text{LiH}$ | 4 | Superconducting | Near chemical accuracy | Kandala et al. (2017) |
+| $\text{BeH}_2$ | 6 | Superconducting | Near chemical accuracy | Kandala et al. (2017) |
+| $\text{H}_2\text{O}$ | 8 | Ion trap | Within $10^{-2}$ Hartree | Nam et al. (2020) |
+
+### 7.2 The Honest Assessment
+
+For molecules beyond $\sim 10$ qubits, current NISQ hardware cannot achieve chemical accuracy. Two fundamental barriers:
+
+**Noise:** Gate errors accumulate through the UCCSD circuit. For $\text{H}_2\text{O}$ with $\sim 10^3$ two-qubit gates at 99.5% fidelity: $(0.995)^{1000} \approx 0.007$ — the circuit is essentially decoherent.
+
+**Barren plateaus:** As the ansatz depth grows, gradients vanish exponentially (see our article on QNN convergence). The classical optimizer cannot find the direction of steepest descent.
+
+**Classical competition:** For molecules up to $\sim 50$ electrons, classical methods like CCSD(T) achieve chemical accuracy efficiently. VQE would need to reach $\sim 100$+ active orbitals to outperform classical methods — requiring fault-tolerant quantum computers, not NISQ devices.
+
+VQE remains the foundational proof-of-concept for hybrid quantum-classical algorithms. Practical quantum advantage in chemistry is a long-term goal contingent on fault-tolerant hardware.
+
+---
+
+## Conclusion
+
+VQE is mathematically elegant: it combines the variational principle with parameterized quantum circuits and classical optimization into a coherent algorithm that runs on today's hardware. The derivations — from the variational principle through second quantization, Jordan-Wigner transformation, and the parameter-shift rule — are all rigorous and connected.
+
+The honest position in 2026: VQE has demonstrated proof-of-concept results on small molecules. It has not yet demonstrated practical quantum advantage over classical chemistry methods. That remains the frontier this algorithm was designed to eventually cross.
+
+---
+
+## References
+
+1. Peruzzo, A., McClean, J., Shadbolt, P., Yung, M.-H., Zhou, X.-Q., Love, P. J., Aspuru-Guzik, A., & O'Brien, J. L. (2014). A variational eigenvalue solver on a photonic quantum processor. *Nature Communications*, 5(1), 4213. https://doi.org/10.1038/ncomms5213
+
+2. Kandala, A., Mezzacapo, A., Temme, K., Takita, M., Brink, M., Chow, J. M., & Gambetta, J. M. (2017). Hardware-efficient variational quantum eigensolver for small molecules and quantum magnets. *Nature*, 549(7671), 242–246. https://doi.org/10.1038/nature23879
+
+3. Mitarai, K., Negoro, M., Kitagawa, M., & Fujii, K. (2018). Quantum circuit learning. *Physical Review A*, 98(3), 032309. https://doi.org/10.1103/PhysRevA.98.032309
+
+4. Schuld, M., Bergholm, V., Gogolin, C., Izaac, J., & Killoran, N. (2019). Evaluating analytic gradients on quantum hardware. *Physical Review A*, 99(3), 032331. https://doi.org/10.1103/PhysRevA.99.032331
+
+5. Nam, Y., Chen, J.-S., Pisenti, N. C., Wright, K., Delaney, C., Maslov, D., Brown, K. R., Allen, S., Amini, J. M., Apisdorf, J., et al. (2020). Ground-state energy estimation of the water molecule on a trapped-ion quantum computer. *npj Quantum Information*, 6(1), 33. https://doi.org/10.1038/s41534-020-0259-3
+
+6. Tilly, J., Chen, H., Cao, S., Picozzi, D., Setia, K., Li, Y., Grant, E., Wossnig, L., Rungger, I., Booth, G. H., & Tennyson, J. (2022). The variational quantum eigensolver: A review of methods and best practices. *Physics Reports*, 986, 1–128. https://doi.org/10.1016/j.physrep.2022.08.003

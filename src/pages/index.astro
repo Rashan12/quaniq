@@ -1,0 +1,255 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import NewsletterForm from '../components/NewsletterForm.jsx';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+
+const featuredRaw = sortedPosts.find(p => p.slug === 'vqe-derivation') || sortedPosts[0];
+const featuredPost = {
+  title: featuredRaw.data.title,
+  excerpt: featuredRaw.data.excerpt,
+  topic: featuredRaw.data.topic,
+  date: new Date(featuredRaw.data.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+  readTime: featuredRaw.data.readTime,
+  image: featuredRaw.data.heroImage || '/images/posts/placeholder-hero.png',
+  href: `/posts/${featuredRaw.slug}`,
+  author: {
+    name: featuredRaw.data.author.name
+  }
+};
+
+const latestPosts = sortedPosts.filter(p => p.slug !== featuredRaw.slug).slice(0, 3).map(p => ({
+  title: p.data.title,
+  excerpt: p.data.excerpt,
+  topic: p.data.topic,
+  date: new Date(p.data.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+  readTime: p.data.readTime,
+  image: p.data.heroImage || '/images/posts/placeholder-hero.png',
+  href: `/posts/${p.slug}`,
+  slug: p.slug,
+  author: { name: p.data.author.name }
+}));
+
+const topics = [
+  { title: "Quantum ML", desc: "Variational circuits, quantum kernels, QNNs", count: "12 articles" },
+  { title: "Quantum Algorithms", desc: "Grover, Shor, HHL, QAOA", count: "8 articles" },
+  { title: "Foundations", desc: "Dirac notation, density matrices, unitaries", count: "15 articles" },
+  { title: "Classical AI", desc: "Where classical meets quantum", count: "6 articles" },
+  { title: "Industry & Research", desc: "Papers, roadmaps, real progress", count: "10 articles" },
+];
+
+const explorerPosts = [...latestPosts, ...latestPosts];
+---
+
+<BaseLayout title="Quaniq | Quantum AI Publication">
+  <!-- 1. HERO SECTION -->
+  <section class="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden border-b border-[#1e1e2e]">
+    <div class="absolute inset-0 bg-[#0a0a0f]/60 z-10"></div>
+    <div class="absolute inset-0 bg-cover bg-center opacity-40 bg-fixed" style="background-image: url('/images/bg-texture.png')"></div>
+    
+    <div class="relative z-20 reading-column text-center px-6">
+      <span class="inline-block px-3 py-1 rounded bg-[#6366f1]/20 border border-[#6366f1]/30 text-[#6366f1] text-[10px] font-bold uppercase tracking-[0.2em] mb-8">
+        Quantum AI · Data Science · Quantum Computing
+      </span>
+      <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.1]">
+        Where Quantum Mechanics <br/> <span class="text-[#2dd4bf]">Meets Artificial Intelligence</span>
+      </h1>
+      <p class="text-xl text-[#94a3b8] max-w-2xl mx-auto mb-12 leading-relaxed">
+        Rigorous technical writing on quantum ML, quantum algorithms, and the future of computation. 
+        No hype. Full derivations. Cited sources.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+        <a href="#latest" class="w-full sm:w-auto rounded-md bg-[#6366f1] px-8 py-4 text-sm font-bold text-white no-underline hover:bg-[#4f46e5] transition-all transform hover:-translate-y-1">
+          Read Latest
+        </a>
+        <a href="/newsletter" class="w-full sm:w-auto rounded-md border border-[#2dd4bf]/40 bg-transparent px-8 py-4 text-sm font-bold text-[#2dd4bf] no-underline hover:bg-[#2dd4bf]/10 transition-all transform hover:-translate-y-1">
+          Subscribe
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 13 5 5 5-5"/><path d="m7 6 5 5 5-5"/></svg>
+    </div>
+  </section>
+
+  <!-- 2. FEATURED POST -->
+  <section class="py-24 border-b border-[#1e1e2e]">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="group relative rounded-2xl border border-[#1e1e2e] bg-[#0f0f1a] overflow-visible grid grid-cols-1 lg:grid-cols-[55%_45%] gap-8 lg:gap-12 shadow-2xl transition-all hover:border-[#6366f1]/50">
+        <div class="relative z-10 p-8 md:p-12 flex flex-col justify-center overflow-visible">
+          <span class="text-xs font-bold text-[#2dd4bf] uppercase tracking-[0.2em] mb-4">Featured Article</span>
+          <h2 class="text-3xl md:text-4xl font-bold !mt-0 mb-6 group-hover:text-[#6366f1] transition-colors leading-tight whitespace-normal overflow-visible">
+            {featuredPost.title}
+          </h2>
+          <p class="text-lg text-[#94a3b8] mb-8 leading-relaxed">
+            {featuredPost.excerpt}
+          </p>
+          <div class="flex items-center gap-4 mb-8">
+            <div class="h-10 w-10 rounded-full bg-[#1e1e2e] overflow-hidden">
+               <div class="w-full h-full bg-[#1e1e2e] font-bold text-[#f8fafc] flex items-center justify-center text-sm border border-[#2dd4bf]/20">RD</div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold">{featuredPost.author.name}</div>
+              <div class="text-xs text-[#475569]">{featuredPost.date} • {featuredPost.readTime} min read</div>
+            </div>
+          </div>
+          <a href={featuredPost.href} class="inline-flex items-center gap-2 rounded-md bg-[#6366f1] px-6 py-3 text-sm font-bold text-white no-underline hover:bg-[#4f46e5] w-fit">
+            Read Article
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div style="overflow: hidden; border-radius: 0 12px 12px 0; height: 100%; min-height: 300px;">
+          <img 
+            src={featuredPost.image} 
+            alt={`Featured article: ${featuredPost.title}`} 
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+            width="800"
+            height="450"
+            onerror="this.src='/images/posts/placeholder-hero.png'"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. LATEST POSTS GRID -->
+  <section id="latest" class="py-24 bg-[#0a0a0f]">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="flex items-end justify-between mb-12">
+        <div>
+          <h2 class="!mt-0 !mb-2 text-3xl font-bold">Latest Articles</h2>
+          <p class="text-[#94a3b8]">New research and analysis from the Quaniq lab</p>
+        </div>
+        <a href="/archive" class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-[#6366f1] no-underline hover:text-[#2dd4bf] transition-colors">
+          View all archive
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {latestPosts.map(post => <PostCard {...post} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. TOPICS SECTION -->
+  <section class="py-24 border-y border-[#1e1e2e] bg-[#0f0f1a]">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="!mt-0 !mb-4 text-3xl font-bold">Explore by Topic</h2>
+        <p class="text-[#94a3b8] max-w-xl mx-auto">Specialized coverage across the entire quantum computing stack.</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {topics.map(topic => {
+          let icon = '';
+          let color = '';
+          if (topic.title === "Quantum ML") {
+            color = "#6366f1";
+            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m16 4-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>`;
+          } else if (topic.title === "Quantum Algorithms") {
+            color = "#2dd4bf";
+            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M7 10h10"/><path d="M5 20v-4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M3 10V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/><path d="m9 10 3-3 3 3"/></svg>`;
+          } else if (topic.title === "Foundations") {
+            color = "#6366f1";
+            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M3 12c0 2.21 4.03 4 9 4s9-1.79 9-4-4.03-4-9-4-9 1.79-9 4Z"/><path d="M12 3c-2.21 0-4 4.03-4 9s1.79 9 4 9 4-4.03 4-9-1.79-9-4-9Z"/></svg>`;
+          } else if (topic.title === "Classical AI") {
+            color = "#2dd4bf";
+            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M12 3v3"/><path d="M12 18v3"/><path d="M6 12H3"/><path d="M21 12h-3"/><path d="m18.36 5.64-2.12 2.12"/><path d="m8.12 15.88-2.12 2.12"/><path d="m5.64 5.64 2.12 2.12"/><path d="m15.88 15.88 2.12 2.12"/></svg>`;
+          } else if (topic.title === "Industry & Research") {
+            color = "#6366f1";
+            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"/><path d="M7 15h0"/><path d="M12 15h0"/><path d="M17 15h0"/><path d="M7 11h0"/><path d="M12 11h0"/><path d="M17 11h0"/><rect width="20" height="14" x="2" y="7" rx="2"/></svg>`;
+          }
+          
+          let topicSlug = "";
+          if (topic.title === "Quantum ML") topicSlug = "quantum-ml";
+          else if (topic.title === "Quantum Algorithms") topicSlug = "quantum-algorithms";
+          else if (topic.title === "Foundations") topicSlug = "foundations";
+          else if (topic.title === "Classical AI") topicSlug = "classical-ai";
+          else if (topic.title === "Industry & Research") topicSlug = "industry-research";
+
+          return (
+            <a href={`/topics/${topicSlug}`} class="group p-8 rounded-xl bg-[#0a0a0f] border border-[#1e1e2e] no-underline hover:border-[#6366f1] hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_10px_30px_rgba(99,102,241,0.1)]">
+              <div class="h-12 w-12 rounded bg-[#1e1e2e] mb-6 flex items-center justify-center group-hover:bg-[#6366f1]/20 transition-colors">
+                <div class="w-6 h-6 flex items-center justify-center">
+                  <Fragment set:html={icon} />
+                </div>
+              </div>
+              <h3 class="text-lg font-bold !mt-0 mb-3 text-[#f8fafc] group-hover:text-[#6366f1] transition-colors">{topic.title}</h3>
+              <p class="text-xs text-[#94a3b8] mb-6 leading-relaxed">{topic.desc}</p>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-[#475569] group-hover:text-[#2dd4bf] transition-colors">{topic.count}</span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. NEWSLETTER SECTION -->
+  <section class="py-32 bg-gradient-to-br from-[#0a0a0f] via-[#0f0f1a] to-[#1e1b4b] relative overflow-hidden">
+    <div class="max-w-[1200px] mx-auto px-6 relative z-10">
+      <div class="max-w-2xl">
+        <span class="text-xs font-bold text-[#6366f1] uppercase tracking-[0.2em] mb-4 inline-block">The Quaniq Weekly</span>
+        <h2 class="text-4xl md:text-5xl font-bold !mt-0 mb-6 leading-[1.2]">One article. One paper worth reading. Every week. No noise.</h2>
+        <p class="text-lg text-[#94a3b8] mb-12">
+          Join researchers and engineers who read Quaniq to stay at the frontier of quantum computation and intelligent systems.
+        </p>
+        <NewsletterForm client:load />
+        <p class="flex items-center gap-2 text-xs text-[#475569]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+          No spam. Unsubscribe anytime.
+        </p>
+      </div>
+    </div>
+    <div class="absolute -right-20 -top-20 h-[500px] w-[500px] rounded-full bg-[#6366f1]/10 blur-[120px]"></div>
+    <div class="absolute -left-20 -bottom-20 h-[500px] w-[500px] rounded-full bg-[#2dd4bf]/5 blur-[120px]"></div>
+  </section>
+
+  <!-- 6. MORE TO EXPLORE -->
+  <section class="py-24 border-t border-[#1e1e2e] bg-[#0a0a0f]">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <h3 class="!mt-0 mb-8 font-bold text-xl uppercase tracking-widest text-[#475569]">More to Explore</h3>
+      <div 
+        class="flex overflow-x-auto gap-8 pb-8 no-scrollbar scroll-smooth snap-x snap-mandatory"
+        style="scrollbar-width: none; -ms-overflow-style: none;"
+      >
+        {explorerPosts.map(post => (
+          <a 
+            href={`/posts/${post.slug}`} 
+            style="text-decoration: none; display: block; cursor: pointer; transform: translateY(0); transition: transform 0.2s ease;" 
+            onmouseover="this.style.transform='translateY(-2px)'" 
+            onmouseout="this.style.transform='translateY(0)'"
+            class="min-w-[280px] w-[280px] flex-shrink-0 group snap-start block no-underline"
+          >
+             <div class="aspect-[28/16] h-[160px] rounded-lg bg-[#0f0f1a] border border-[#1e1e2e] overflow-hidden mb-4 group-hover:border-[#6366f1] transition-all">
+                <img 
+                  src={post.image} 
+                  alt={`Explore topic: ${post.title}`} 
+                  class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" 
+                  width="280"
+                  height="160"
+                  loading="lazy"
+                  onerror="this.src='/images/posts/placeholder-hero.png'"
+                />
+             </div>
+             <div class="text-[10px] font-bold text-[#2dd4bf] uppercase tracking-wider mb-2">{post.topic}</div>
+             <h4 class="text-sm font-bold !m-0 line-clamp-2 leading-relaxed text-[#f8fafc] group-hover:text-[#6366f1] transition-colors">{post.title}</h4>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

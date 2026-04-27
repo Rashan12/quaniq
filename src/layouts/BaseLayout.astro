@@ -1,0 +1,81 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  canonicalURL?: string;
+  isArticle?: boolean;
+}
+
+const {
+  title = "Quaniq | Quantum AI Publication",
+  description = "A professional digital publication exploring the intersection of quantum computing and artificial intelligence.",
+  ogImage = "/images/og-default.jpg",
+  canonicalURL = Astro.url.href,
+  isArticle = false,
+} = Astro.props;
+
+const siteUrl = "https://quaniq.netlify.app";
+
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Quaniq",
+  "url": siteUrl,
+  "logo": `${siteUrl}/images/quaniq-logo.svg`,
+  "sameAs": [
+    "https://twitter.com/quaniq",
+    "https://github.com/quaniq"
+  ]
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		
+		<link rel="canonical" href={canonicalURL} />
+		
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+		
+		<meta property="og:type" content={isArticle ? "article" : "website"} />
+		<meta property="og:url" content={Astro.url} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL(ogImage, Astro.url)} />
+		
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={Astro.url} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={new URL(ogImage, Astro.url)} />
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+		{!isArticle && (
+			<script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+		)}
+
+		<!-- Umami Analytics -->
+		<script async defer data-website-id="PLACEHOLDER-ID" src="https://analytics.umami.is/script.js"></script>
+	</head>
+	<body class="min-h-screen flex flex-col bg-[#0a0a0f] text-[#f8fafc]">
+		<Header />
+		<main class="flex-grow">
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>

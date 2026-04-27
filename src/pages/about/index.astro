@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const author = {
+  name: "Rashan Dissanayaka",
+  role: "Data Science Professional & Quantum AI Researcher",
+  org: "Founder/CEO at Intellit",
+  image: "/images/authors/rashan.jpg"
+};
+---
+
+<BaseLayout title="About | Quaniq" description="Mapping the landscape of quantum intelligence and computational foundations.">
+  <div class="reading-column py-24">
+    <!-- Section 1: About Quaniq -->
+    <section class="mb-24">
+      <h1 class="text-5xl font-bold mb-8">About Quaniq</h1>
+      <div class="prose">
+        <p>
+          Quaniq exists at the intersection of rigorous physics and cutting-edge machine learning. In an era often dominated by hype and speculative claims, Quaniq is a dedicated space for researchers, engineers, and curious minds who value mathematical precision and factual accuracy above all else.
+        </p>
+        <p>
+          Our mission is to map the landscape of the quantum intelligence frontier. We provide deep-dive derivations, analysis of academic breakthroughs, and practical insights into how quantum systems will eventually transform the way we process information and build intelligent models.
+        </p>
+        <p>
+          <strong>The "No Hype" Commitment:</strong> Every article published here is grounded in verified research. We don't just report on breakthroughs; we provide the math, the circuits, and the context required to understand them.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 2: About the Author -->
+    <section class="mb-24 py-16 px-10 rounded-3xl bg-[#0f0f1a] border border-[#1e1e2e] relative overflow-hidden">
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#6366f1]/10 blur-3xl"></div>
+      </div>
+
+      <div class="relative z-10 flex flex-col md:flex-row gap-12 items-start">
+        <div class="h-32 w-32 shrink-0">
+          <img 
+            src="/images/rashan.jpg"
+            alt="Rashan Dissanayaka"
+            width="200"
+            height="200"
+            style="width:200px; height:220px; border-radius:16px; object-fit:cover; object-position:top center;"
+          />
+        </div>
+        
+        <div>
+          <span class="text-xs font-bold text-[#2dd4bf] uppercase tracking-widest mb-2 block">The Author</span>
+          <h2 class="text-3xl font-bold !mt-0 mb-2">{author.name}</h2>
+          <p class="text-[#94a3b8] mb-8">Data Science Professional & Quantum AI Researcher | Founder/CEO at <a href="https://intellit.com" class="text-[#6366f1] no-underline hover:underline" target="_blank">Intellit</a></p>
+          
+          <div class="space-y-6 text-[#94a3b8] leading-relaxed">
+            <p>
+              Rashan is a Data Science Professional and Quantum AI Researcher, and the Founder & CEO of Intellit — an AI automation agency building intelligent systems across fintech, banking, and enterprise sectors.
+            </p>
+            <p>
+              His work spans the full spectrum of applied AI: from production machine learning pipelines and intelligent automation to strategic AI product development. He operates at the intersection of deep technical execution and business impact, working across both research and commercial contexts.
+            </p>
+            <p>
+              His current research focus is quantum machine learning — specifically quantum kernel methods, variational algorithms, and the practical path toward quantum advantage in real-world AI systems. Quaniq is where that research is made public.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Contact -->
+    <section>
+      <h2 class="text-3xl font-bold mb-8">Collaboration & Contact</h2>
+      <p class="text-[#94a3b8] mb-12 max-w-2xl leading-relaxed">
+        Whether you're a researcher looking to collaborate on a paper, an organization interested in speaking engagements, or have inquiries regarding technical writing collaborations.
+      </p>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <a href="mailto:hello@intellit.com" class="p-8 rounded-xl bg-[#0f0f1a] border border-[#1e1e2e] no-underline hover:border-[#6366f1] transition-all group">
+          <h4 class="text-[#f8fafc] mb-2 group-hover:text-[#6366f1] transition-colors">Direct Inquiry</h4>
+          <p class="text-sm text-[#475569] m-0">hello@intellit.com</p>
+        </a>
+        <a href="https://linkedin.com" class="p-8 rounded-xl bg-[#0f0f1a] border border-[#1e1e2e] no-underline hover:border-[#6366f1] transition-all group">
+          <h4 class="text-[#f8fafc] mb-2 group-hover:text-[#6366f1] transition-colors">Professional Network</h4>
+          <p class="text-sm text-[#475569] m-0">LinkedIn Profile</p>
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

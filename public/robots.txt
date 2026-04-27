@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://quaniq.netlify.app/sitemap-index.xml

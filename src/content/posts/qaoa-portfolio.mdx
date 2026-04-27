@@ -1,0 +1,328 @@
+---
+title: "Optimizing QAOA for Portfolio Selection"
+subtitle: "A real-world application of the Quantum Approximate Optimization Algorithm to combinatorial finance problems"
+topic: "quantum-algorithms"
+date: 2026-04-15
+readTime: 15
+author: "Rashan Dissanayaka"
+excerpt: "Portfolio optimization is a combinatorial problem that becomes classically intractable at scale. We formulate it as a QUBO, map it to a quantum Hamiltonian, derive the QAOA circuit construction, and honestly assess where current hardware stands on solving it."
+heroImage: "/images/posts/qaoa-hero.png"
+tags: ["QAOA", "portfolio optimization", "QUBO", "quantum algorithms", "finance", "combinatorial optimization"]
+featured: false
+---
+
+## Introduction
+
+Portfolio selection — choosing which assets to hold and in what proportions to maximize return for a given risk level — sounds like a classical optimization problem. And for small portfolios, it is. The Markowitz mean-variance framework [Markowitz, 1952] solves it exactly in polynomial time for continuous allocations.
+
+But real institutional portfolio management adds constraints that break convexity: cardinality constraints (hold exactly $k$ of $N$ assets), integer lot sizes, transaction cost penalties, and sector exposure limits. With these constraints, portfolio optimization becomes an **NP-hard combinatorial problem** [Bienstock, 1996].
+
+This makes it a natural target for quantum optimization algorithms. In this article we derive the full QAOA formulation for the cardinality-constrained portfolio problem — from financial model to quantum circuit — and assess where the approach currently stands.
+
+---
+
+## 1. The Portfolio Optimization Problem
+
+### 1.1 Markowitz Framework
+
+Let $N$ be the number of candidate assets. Define:
+- $\mu \in \mathbb{R}^N$: vector of expected returns, $\mu_i = \mathbb{E}[r_i]$
+- $\Sigma \in \mathbb{R}^{N \times N}$: covariance matrix of returns, $\Sigma_{ij} = \text{Cov}(r_i, r_j)$
+- $w \in \mathbb{R}^N$: portfolio weight vector, $w \geq 0$, $\sum_i w_i = 1$
+
+The mean-variance optimization problem is:
+
+<div class="math-block">
+
+$$
+\min_{w} \; \lambda \, w^T \Sigma w - (1-\lambda) \mu^T w
+$$
+
+</div>
+
+subject to $\sum_i w_i = 1$, $w_i \geq 0$, where $\lambda \in [0,1]$ is a risk-aversion parameter.
+
+This is a **quadratic program** — convex, solvable in polynomial time.
+
+### 1.2 Cardinality-Constrained Version
+
+Add the constraint: select **exactly $k$ assets** from $N$ candidates with equal weight $1/k$. Introduce binary decision variables $z_i \in \{0, 1\}$ where $z_i = 1$ means asset $i$ is selected.
+
+The portfolio return and risk become:
+
+<div class="math-block">
+
+$$
+\text{Return} = \frac{1}{k}\sum_{i=1}^N z_i \mu_i = \frac{\mu^T z}{k}
+$$
+
+</div>
+
+<div class="math-block">
+
+$$
+\text{Risk} = \frac{1}{k^2} z^T \Sigma z
+$$
+
+</div>
+
+The optimization problem:
+
+<div class="math-block">
+
+$$
+\min_{z \in \{0,1\}^N} \;\lambda \cdot \frac{z^T \Sigma z}{k^2} - (1-\lambda) \cdot \frac{\mu^T z}{k}
+$$
+
+</div>
+
+<div class="math-block">
+
+$$
+\text{subject to} \quad \sum_{i=1}^N z_i = k
+$$
+
+</div>
+
+This is an **NP-hard** binary quadratic program. For $N = 50$ assets and $k = 10$, the search space is $\binom{50}{10} \approx 1.03 \times 10^{10}$ — already beyond brute-force enumeration.
+
+---
+
+## 2. QUBO Formulation
+
+QAOA requires the problem to be expressed as a **Quadratic Unconstrained Binary Optimization (QUBO)** problem. We must incorporate the cardinality constraint via a penalty term.
+
+### 2.1 Penalty Encoding
+
+The constraint $\sum_i z_i = k$ is enforced by adding a squared penalty:
+
+<div class="math-block">
+
+$$
+P(z) = A \left(\sum_{i=1}^N z_i - k\right)^2
+$$
+
+</div>
+
+where $A > 0$ is a penalty coefficient chosen large enough that any feasible solution (satisfying the constraint) is better than any infeasible one. A sufficient condition: $A > \max_z |C(z)|$ over infeasible solutions.
+
+The full QUBO objective (to minimize) is:
+
+<div class="math-block">
+
+$$
+C_{\text{QUBO}}(z) = \lambda \cdot \frac{z^T \Sigma z}{k^2} - (1-\lambda) \cdot \frac{\mu^T z}{k} + A\left(\sum_i z_i - k\right)^2
+$$
+
+</div>
+
+Expanding the penalty:
+
+<div class="math-block">
+
+$$
+C_{\text{QUBO}}(z) = \sum_{i=1}^N \sum_{j=1}^N Q_{ij} z_i z_j + \sum_{i=1}^N \ell_i z_i + \text{const}
+$$
+
+</div>
+
+where the QUBO matrix entries are:
+
+<div class="math-block">
+
+$$
+Q_{ij} = \frac{\lambda}{k^2}\Sigma_{ij} + A \quad (i \neq j), \qquad Q_{ii} = \frac{\lambda}{k^2}\Sigma_{ii} - \frac{1-\lambda}{k}\mu_i + A(1 - 2k)
+$$
+
+</div>
+
+### 2.2 Ising Hamiltonian
+
+QAOA works with **Ising spin variables** $s_i \in \{-1, +1\}$ rather than binary variables. The substitution $z_i = (1 - s_i)/2$ converts the QUBO to an Ising model. After substitution and simplification, the problem Hamiltonian acting on $n = N$ qubits is:
+
+<div class="math-block">
+
+$$
+H_C = \sum_{i < j} J_{ij} Z_i Z_j + \sum_{i=1}^N h_i Z_i
+$$
+
+</div>
+
+where $Z_i$ is the Pauli-Z operator on qubit $i$, and the coupling and field coefficients $J_{ij}$, $h_i$ are functions of $Q_{ij}$ and $\ell_i$ (explicit expressions omitted but straightforwardly derived from the substitution).
+
+The portfolio optimization problem is now equivalent to finding the ground state of $H_C$ — the eigenstate with the minimum eigenvalue.
+
+---
+
+## 3. The QAOA Circuit
+
+### 3.1 Algorithm Overview
+
+QAOA [Farhi, Goldstone, & Gutmann, 2014] is a variational algorithm that prepares an approximation to the ground state of $H_C$ using a circuit of depth $p$ (not to be confused with the number of assets $N$).
+
+The QAOA circuit alternates two types of unitaries:
+
+<div class="math-block">
+
+$$
+|\boldsymbol{\gamma}, \boldsymbol{\beta}\rangle = U_M(\beta_p) U_C(\gamma_p) \cdots U_M(\beta_1) U_C(\gamma_1) |+\rangle^{\otimes N}
+$$
+
+</div>
+
+where:
+- $|+\rangle^{\otimes N} = H^{\otimes N}|0\rangle^{\otimes N}$ is the uniform superposition over all $2^N$ bitstrings
+- $U_C(\gamma) = e^{-i\gamma H_C}$ is the **phase separation unitary** — encodes the cost function
+- $U_M(\beta) = e^{-i\beta H_M}$ is the **mixing unitary** — enables quantum tunneling between states
+
+### 3.2 Phase Separation Unitary
+
+Since $H_C$ is diagonal in the computational basis (it's a sum of $Z$ and $ZZ$ terms):
+
+<div class="math-block">
+
+$$
+U_C(\gamma) = e^{-i\gamma H_C} = \prod_{i < j} e^{-i\gamma J_{ij} Z_i Z_j} \prod_{i} e^{-i\gamma h_i Z_i}
+$$
+
+</div>
+
+Each factor is implementable directly:
+- $e^{-i\gamma h_i Z_i}$: single-qubit $R_Z(2\gamma h_i)$ rotation on qubit $i$
+- $e^{-i\gamma J_{ij} Z_i Z_j}$: two-qubit gate implemented as CNOT–$R_Z(2\gamma J_{ij})$–CNOT sequence
+
+For $N$ assets with all pairwise couplings, $U_C$ requires $O(N^2)$ two-qubit gates per layer.
+
+### 3.3 Mixing Unitary
+
+The standard mixer is:
+
+<div class="math-block">
+
+$$
+U_M(\beta) = e^{-i\beta H_M} = e^{-i\beta \sum_i X_i} = \prod_{i=1}^{N} e^{-i\beta X_i} = \prod_{i=1}^{N} R_X(2\beta)
+$$
+
+</div>
+
+where $X_i$ is the Pauli-X operator on qubit $i$. This is a product of single-qubit $X$-rotations — $N$ single-qubit gates, no entanglement.
+
+**Note on feasibility-preserving mixers:** The standard $X$ mixer does not preserve the constraint $\sum_i z_i = k$. Hadfield et al. [2019] introduced **XY mixers** that only mix between states with the same Hamming weight (same number of 1s), preserving the cardinality constraint and potentially improving performance:
+
+<div class="math-block">
+
+$$
+H_{XY} = \sum_{\langle i,j \rangle} (X_i X_j + Y_i Y_j)
+$$
+
+</div>
+
+### 3.4 The Optimization Loop
+
+The QAOA parameters $\boldsymbol{\gamma} = (\gamma_1, \ldots, \gamma_p)$ and $\boldsymbol{\beta} = (\beta_1, \ldots, \beta_p)$ are optimized classically to minimize:
+
+<div class="math-block">
+
+$$
+F_p(\boldsymbol{\gamma}, \boldsymbol{\beta}) = \langle \boldsymbol{\gamma}, \boldsymbol{\beta} | H_C | \boldsymbol{\gamma}, \boldsymbol{\beta} \rangle
+$$
+
+</div>
+
+This is the expected portfolio cost under the QAOA quantum state. A classical optimizer (COBYLA, Nelder-Mead, or gradient-based methods via parameter shift) minimizes $F_p$ over $2p$ real parameters.
+
+---
+
+## 4. Approximation Ratio Analysis
+
+### 4.1 Theoretical Guarantees
+
+For $p = 1$ QAOA on a specific class of 3-regular MaxCut graphs, Farhi et al. proved an approximation ratio of at least $0.6924$ [Farhi et al., 2014]. For general problems, the approximation ratio of depth-$p$ QAOA approaches the true optimum as $p \to \infty$:
+
+$$
+\lim_{p \to \infty} F_p(\boldsymbol{\gamma}^*, \boldsymbol{\beta}^*) = C_{\min}
+$$
+
+This follows from the connection between QAOA and adiabatic quantum computing: at large $p$, the QAOA circuit approximates adiabatic evolution from $H_M$ to $H_C$.
+
+### 4.2 Portfolio-Specific Results
+
+For the portfolio problem, the approximation ratio depends on the spectral gap of $H_C$ and the problem structure. In numerical simulations on small instances ($N \leq 20$ assets), QAOA with $p = 5$–$10$ layers achieves approximation ratios of $0.85$–$0.95$ against exact optimization [Hodson et al., 2019, arXiv:1908.08943].
+
+However, these are **simulated results** on noiseless simulators. On current hardware, noise limits effective QAOA depth to approximately $p \leq 3$ for most platforms.
+
+---
+
+## 5. Hardware Reality Check (2025)
+
+Let's be honest about where things stand.
+
+### 5.1 Qubit Requirements
+
+For $N = 50$ assets: 50 qubits needed. Current hardware has enough qubits (IBM has 127-qubit and 433-qubit processors). But qubit count is not the bottleneck.
+
+### 5.2 Circuit Depth and Coherence
+
+One QAOA layer for 50 assets requires $O(N^2) = O(2500)$ two-qubit gates. With typical two-qubit gate fidelity of $99.5\%$ on IBM hardware, the fidelity of 2500 sequential gates is approximately:
+
+$$
+F \approx (0.995)^{2500} \approx e^{-2500 \times 0.005} = e^{-12.5} \approx 3.7 \times 10^{-6}
+$$
+
+The circuit is essentially decoherent before completing a single layer. **This is the fundamental barrier at present.**
+
+### 5.3 What Can Be Run Today
+
+Realistically, on current hardware:
+- $N \leq 10$–$15$ assets with $p = 1$–$3$ layers on superconducting hardware
+- $N \leq 20$ assets with $p = 1$–$2$ layers using trapped-ion hardware (higher fidelity, slower gates)
+- Results are noisy and require significant error mitigation
+
+This does **not** constitute a demonstration of quantum advantage over classical optimization — classical branch-and-bound solvers handle $N = 100$ cardinality-constrained portfolio problems routinely [Beasley, 1990].
+
+### 5.4 The Path Forward
+
+Quantum advantage for portfolio optimization is plausible in the fault-tolerant era (perhaps 2030s) when deep, error-corrected QAOA circuits become feasible. The theoretical foundations are solid. The hardware is not yet there.
+
+---
+
+## 6. Classical Benchmarks
+
+For context, here are the leading classical approaches and their scaling:
+
+| Method | Instances handled | Time complexity |
+|---|---|---|
+| Branch-and-bound | $N \leq 200$, exact | Exponential worst-case, polynomial typical |
+| Simulated annealing | $N \leq 10{,}000$ | Heuristic, no guarantee |
+| Genetic algorithms | $N \leq 1{,}000$ | Heuristic |
+| QAOA ($p=3$, noisy) | $N \leq 15$ | $O(N^2)$ gates per layer |
+
+Any claimed quantum advantage must beat **simulated annealing** on the same hardware budget, which is a non-trivial bar that QAOA has not yet cleared for portfolio problems on real hardware.
+
+---
+
+## Conclusion
+
+The QAOA formulation for portfolio optimization is mathematically clean and theoretically motivated. The derivation from financial model to quantum circuit is rigorous, and the algorithm has provable convergence properties in the large-$p$ limit.
+
+The engineering reality is that current hardware is 1–2 orders of magnitude away from running meaningful instances. The value of this work now is: (1) establishing the formulation for when hardware improves, (2) identifying algorithmic improvements like feasibility-preserving mixers, and (3) running small validation experiments to verify the approach scales as theorized.
+
+Quantum portfolio optimization is a serious research direction. Claiming it provides a practical advantage today would be dishonest. That is where this field stands.
+
+---
+
+## References
+
+1. Farhi, E., Goldstone, J., & Gutmann, S. (2014). A quantum approximate optimization algorithm. *arXiv preprint* arXiv:1411.4028. https://arxiv.org/abs/1411.4028
+
+2. Markowitz, H. (1952). Portfolio selection. *The Journal of Finance*, 7(1), 77–91. https://doi.org/10.1111/j.1540-6261.1952.tb01525.x
+
+3. Bienstock, D. (1996). Computational study of a family of mixed-integer quadratic programming problems. *Mathematical Programming*, 74(2), 121–140. https://doi.org/10.1007/BF02592208
+
+4. Hadfield, S., Wang, Z., O'Gorman, B., Rieffel, E. G., Venturelli, D., & Biswas, R. (2019). From the quantum approximate optimization algorithm to a quantum alternating operator ansatz. *Algorithms*, 12(2), 34. https://doi.org/10.3390/a12020034
+
+5. Hodson, M., Ruck, B., Ong, H., Garvin, D., & Dulman, S. (2019). Portfolio rebalancing experiments using the quantum alternating operator ansatz. *arXiv preprint* arXiv:1911.05296. https://arxiv.org/abs/1911.05296
+
+6. Egger, D. J., Marecek, J., & Woerner, S. (2021). Warm-starting quantum optimization. *Quantum*, 5, 479. https://doi.org/10.22331/q-2021-06-17-479
+
+7. Beasley, J. E. (1990). OR-Library: distributing test problems by electronic mail. *Journal of the Operational Research Society*, 41(11), 1069–1072. https://doi.org/10.1057/jors.1990.166
