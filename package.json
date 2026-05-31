@@ -10,13 +10,13 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^3.0.0",
-    "@astrojs/react": "^3.0.0",
-    "@astrojs/sitemap": "^3.0.0",
-    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/mdx": "^3.1.9",
+    "@astrojs/react": "^3.6.3",
+    "@astrojs/sitemap": "^3.1.6",
+    "@astrojs/tailwind": "^5.1.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "astro": "^4.0.0",
+    "astro": "^4.16.19",
     "katex": "^0.16.9",
     "node-fetch": "^3.3.2",
     "react": "^18.2.0",

@@ -10,6 +10,7 @@ import rehypeKatex from 'rehype-katex';
 export default defineConfig({
   site: 'https://quaniq.intellit.co.in',
   integrations: [
+    sitemap(),
     mdx({
       remarkPlugins: [remarkMath],
       rehypePlugins: [rehypeKatex],
