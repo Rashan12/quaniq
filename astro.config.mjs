@@ -8,7 +8,7 @@ import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://quaniq.netlify.app',
+  site: 'https://quaniq.intellit.co.in',
   integrations: [
     mdx({
       remarkPlugins: [remarkMath],
